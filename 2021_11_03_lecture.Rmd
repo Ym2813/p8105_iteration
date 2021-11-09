@@ -244,6 +244,12 @@ base_url = "https://www.amazon.com/product-reviews/B00005JNBQ/ref=cm_cr_arp_d_vi
 
 urls = str_c(base_url, 1:5)
 
-get_page_reviews(urls[1])
+bind_rows(
+  get_page_reviews(urls[1]),
+  get_page_reviews(urls[2]),
+  get_page_reviews(urls[3]),
+  get_page_reviews(urls[4]),
+  get_page_reviews(urls[5])
+)
 ```
 
