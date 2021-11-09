@@ -1,0 +1,99 @@
+---
+title: "Writing Functions"
+author: "Anna Ma"
+date: "11/8/2021"
+output: github_document
+---
+
+```{r, include = FALSE}
+library(tidyverse)
+library(rvest)
+```
+
+```{r}
+set.seed(1)
+```
+
+## Z scores
+
+```{r}
+x_vec = rnorm(25, mean = 5, sd = 3)
+
+(x_vec - mean(x_vec)) / sd(x_vec)
+
+z_scores = function(x){
+  
+  z = (x - mean(x)) / sd(x)
+  
+  return(z)
+  
+}
+
+z_scores(x = x_vec)
+
+y_vec = rnorm(40, mean = 12, sd = .3)
+
+z_scores(y_vec)
+#this will assume y_vec is the x in the function 
+```
+
+These will return error message for the above function
+
+```{r, eval = FALSE}
+z_scores(3)
+
+z_scores(c("this","is","a","vector"))
+
+mtcars
+
+z_scores(mtcars)
+```
+
+
+```{r}
+# ask the function to check if x fit some criteria
+z_scores = function(x){
+  
+  if (!is.numeric(x)) {
+    stop("x needs to be numeric") 
+    }
+  
+  if (length(x) < 3) {
+    stop("x should have at least 3 numbers")
+  }
+  
+  z = (x - mean(x)) / sd(x)
+  
+  return(z)
+  
+}
+```
+
+## Multiple outputs
+
+```{r}
+mean_and_sd = function(x) {
+  
+  if (!is.numeric(x)) {
+    stop("Argument x should be numeric")
+  } else if (length(x) == 1) {
+    stop("Cannot be computed for length 1 vectors")
+  }
+  
+  mean_x = mean(x)
+  sd_x = sd(x)
+
+  output_df = 
+    tibble(mean = mean_x, 
+       sd = sd_x)
+  # or use list(mean = mean_x, sd = sd_x)
+  return(output_df)
+}
+```
+
+Verifying the function works
+
+```{r}
+mean_and_sd(y_vec)
+```
+
