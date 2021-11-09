@@ -5,7 +5,7 @@ date: "11/8/2021"
 output: github_document
 ---
 
-```{r, include = FALSE}
+```{r, message=FALSE}
 library(tidyverse)
 library(rvest)
 ```
@@ -95,5 +95,64 @@ Verifying the function works
 
 ```{r}
 mean_and_sd(y_vec)
+```
+
+## Multiple Inputs
+### Different sample sizes, means, sds
+
+```{r}
+sim_data = 
+  tibble(
+    x = rnorm(30, mean = 2, sd = 3)
+  )
+
+sim_data %>% summarize(
+  mean = mean(x),
+  sd = sd(x)
+)
+```
+
+Function that simulates data, computes the mean and sd.
+
+```{r}
+# the input suppose i want sample size n, true mean mu, and true standard deviation sigma
+sim_mean_sd = function(n,mu,sigma){
+  
+  # do checks on inputs
+  sim_data = 
+    tibble(
+      x = rnorm(n, mean = mu, sd = sigma)
+    )
+  
+  sim_data %>% summarize(
+    mean = mean(x),
+    sd = sd(x)
+  )  
+  
+}
+
+
+sim_mean_sd(30,4,3)
+```
+
+Shift + option + put the cursor range, then the cursor gets repeated across multiple lines. Whatever u type in one, will be typed into the others as well. 
+
+We can also set defults
+```{r}
+sim_mean_sd2 = function(n,mu = 3, sigma = 4){
+  
+  # do checks on inputs
+  sim_data = 
+    tibble(
+      x = rnorm(n, mean = mu, sd = sigma)
+    )
+  
+  sim_data %>% summarize(
+    mean = mean(x),
+    sd = sd(x)
+  )  
+  
+}
+sim_mean_sd2(30)
 ```
 
