@@ -68,6 +68,65 @@ list_norms =
 ## Use function on list 
 
 ```{r}
+#This uses the element sequence.
 mean_and_sd(list_norms[[1]])
+# or mean_and_sd(list_norms[["a"]]) this use name
 ```
 
+
+## For loop
+
+lets use a for loop to iterate over the list of normals. 
+
+Steps to do it:
+1. Identify the input. In this case, the input is the list of normals
+2. Figure out the output. We want a vector that is a list and have 4 open spots. 
+3. Know the function that we want to apply to the input
+4. Use function on the input list and put the result into the output list
+
+```{r, include = FALSE}
+output = vector("list",length = 4)
+# This creates a empty list with 4 spots
+
+output[[1]] = mean_and_sd(list_norms[[1]])
+# use mean and sd function on the first element in the in put list, and put the result as the first element in the out put list that we just created 
+```
+
+Now, we can use a for loop to iterate what we did on a single element to create a complete list for all the elements in the list. 
+
+```{r}
+for (i in 1:4) {
+  output[[i]] = mean_and_sd(list_norms[[i]])
+}
+
+output
+```
+
+Lets use map instead
+
+```{r}
+#map input on to the function and return output for all 
+output_map = map(list_norms, mean_and_sd)
+
+output_map
+
+# same result with for loop
+
+# we can also do 
+map(list_norms, median)
+map(list_norms, summary)
+map(list_norms, IQR)
+```
+
+If we want to access element in the list, use: 
+```{r}
+output[[1]]
+```
+
+If we know the type of data that the output will be, we can do this an dget a simpler output. 
+
+```{r}
+map_dbl(list_norms, median)
+```
+
+## List Columns!!
