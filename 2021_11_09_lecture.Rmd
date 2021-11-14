@@ -5,8 +5,9 @@ date: "11/13/2021"
 output: github_document
 ---
 
-```{r}
+```{r, message = FALSE}
 library(tidyverse)
+library(rvest)
 
 set.seed(1)
 ```
@@ -130,3 +131,165 @@ map_dbl(list_norms, median)
 ```
 
 ## List Columns!!
+
+```{r}
+listcol_df = 
+  tibble(
+    name = c("a","b","c","d"),
+    norms = list_norms
+  )
+
+#we can do any df stuff with this data frame, such as filter
+listcol_df %>% 
+  filter(name == "a")
+
+listcol_df %>% pull(name)
+listcol_df %>% pull(norms)
+
+mean_and_sd(listcol_df$norms[[1]])
+
+```
+
+
+We can use map on the column of the data frame and use mutate to put all the result that we get from the map function into a new column of the original data frame! 
+
+```{r}
+listcol_df %>% 
+  mutate(summaries = map(listcol_df$norms, mean_and_sd))
+```
+
+
+## Nested data
+```{r}
+weather_df = 
+  rnoaa::meteo_pull_monitors(
+    c("USW00094728", "USC00519397", "USS0023B17S"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2017-01-01",
+    date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(
+      id, 
+      USW00094728 = "CentralPark_NY", 
+      USC00519397 = "Waikiki_HA",
+      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(name, id, everything())
+```
+
+Nest data within location (nest into a sub dataframe)
+
+```{r}
+weather_nested = nest(weather_df, data = date:tmin)
+ 
+# We can also do ... (shift+option to put cursor over multiple lines)
+# weather_nested = 
+#   weather_df %>% 
+#   nest(data = date:tmin)
+
+
+weather_nested %>% filter(name == "CentralPark_NY") %>% pull(data)
+
+weather_nested$data[[1]]
+```
+
+Fit a regression
+
+```{r}
+lm(tmax ~ tmin, data = weather_nested$data[[1]])
+```
+
+Use a function for linear regression
+
+```{r}
+weather_lm = function(df){
+  
+  lm(tmax ~ tmin, data = df)
+}
+
+weather_lm(weather_nested$data[[1]])
+```
+
+Use the map function to apply linear regression to all the elements
+
+```{r}
+map(weather_nested$data, weather_lm)
+```
+
+Add the linear regression to the data frame we satrted with
+
+```{r}
+weather_nested %>% 
+  mutate(lm_result = map(weather_nested$data, weather_lm))
+```
+
+
+## Unest
+
+```{r}
+unnest(weather_nested, data)
+
+# weather_nested %>% unnest(data)
+```
+
+## Revisiting Napoleon
+
+Function to get review / stars
+
+```{r}
+get_page_reviews = function(page_url){
+  
+  page_html = read_html(page_url)
+
+  review_titles = 
+    page_html %>%
+    html_nodes(".a-text-bold span") %>%
+    html_text()
+  
+  review_stars = 
+    page_html %>%
+    html_nodes("#cm_cr-review_list   .review-rating") %>%
+    html_text() %>%
+    str_extract("^\\d") %>%
+    as.numeric()
+  
+  review_text = 
+    page_html %>%
+    html_nodes(".review-text-content span") %>%
+    html_text() %>% 
+    str_replace_all("\n", "") %>% 
+    str_trim()
+  
+  reviews = 
+    tibble(
+      title = review_titles,
+      stars = review_stars,
+      text = review_text
+  )
+  
+  return(reviews)
+}
+
+base_url = "https://www.amazon.com/product-reviews/B00005JNBQ/ref=cm_cr_arp_d_viewopt_rvwer?ie=UTF8&reviewerType=avp_only_reviews&sortBy=recent&pageNumber="
+
+urls = str_c(base_url, 1:5)
+```
+
+We will write, for the first element of this function, apply this... for the second element, do that... 
+
+```{r}
+map(urls, get_page_reviews)
+
+napoleon_df = 
+  tibble(
+    urls = urls
+    )
+
+napoleon_df %>% 
+  mutate(reviews = map(urls, get_page_reviews)) %>% 
+  select(reviews) %>% 
+  unnest()
+``` 
+
+
